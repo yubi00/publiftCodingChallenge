@@ -13,6 +13,11 @@ function groupBy(objectArray, property) {
   ];
 }
 
+function avg(sum, count) {
+  return Math.floor(sum / count);
+}
+
 module.exports = {
-  groupBy
+  groupBy,
+  avg
 };

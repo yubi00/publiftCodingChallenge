@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const getData = require('./utils/getData');
-const { groupBy } = require('./utils/queries');
+const { groupBy, avg } = require('./utils/queries');
 
 const app = express();
 const port = 5000;
@@ -42,10 +42,37 @@ app.get('/api/pageviews', async (req, res) => {
       const sum = data.reduce((sum, curr) => sum + parseInt(curr.Pageviews), 0);
       return {
         Date: data[0].Date,
-        AveragePageViews: Math.floor(sum / data.length)
+        AveragePageViews: avg(sum, data.length)
       };
     });
     const json = JSON.stringify(avgPageViewByDate, null, 2);
+
+    res.status(200).send(`<pre>${json}</pre>`);
+  } catch (err) {
+    res.status(404).send({ status: false, error: err.message });
+  }
+});
+
+app.get('/api/userssessions', async (req, res) => {
+  try {
+    const files = Object.keys(store);
+    const data = await getData(store[files[0]]);
+    const dataByDate = groupBy(data, 'Date');
+
+    const usersSessionsRatio = dataByDate.map((data) => {
+      const users = data.reduce((sum, curr) => sum + parseInt(curr.Users), 0);
+      const sessions = data.reduce(
+        (sum, curr) => sum + parseInt(curr.Sessions),
+        0
+      );
+      console.log(users, sessions);
+      return {
+        Date: data[0].Date,
+        UsersSessionsRatio: users / sessions
+      };
+    });
+
+    const json = JSON.stringify(usersSessionsRatio, null, 2);
 
     res.status(200).send(`<pre>${json}</pre>`);
   } catch (err) {
