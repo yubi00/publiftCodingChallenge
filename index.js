@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const getData = require('./utils/getData');
+const { groupBy } = require('./utils/queries');
 
 const app = express();
 const port = 5000;
@@ -24,6 +25,27 @@ app.get('/', async (req, res) => {
     const files = Object.keys(store);
     const data = await getData(store[files[0]]);
     const json = JSON.stringify(data, null, 2);
+
+    res.status(200).send(`<pre>${json}</pre>`);
+  } catch (err) {
+    res.status(404).send({ status: false, error: err.message });
+  }
+});
+
+app.get('/api/pageviews', async (req, res) => {
+  try {
+    const files = Object.keys(store);
+    const data = await getData(store[files[0]]);
+    const dataByDate = groupBy(data, 'Date');
+
+    const avgPageViewByDate = dataByDate.map((data) => {
+      const sum = data.reduce((sum, curr) => sum + parseInt(curr.Pageviews), 0);
+      return {
+        Date: data[0].Date,
+        AveragePageViews: Math.floor(sum / data.length)
+      };
+    });
+    const json = JSON.stringify(avgPageViewByDate, null, 2);
 
     res.status(200).send(`<pre>${json}</pre>`);
   } catch (err) {
