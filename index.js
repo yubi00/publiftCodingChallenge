@@ -3,7 +3,7 @@ const multer = require('multer');
 const { v4: uuid } = require('uuid');
 const moment = require('moment');
 const getData = require('./utils/getData');
-const { groupBy, avg } = require('./utils/queries');
+const { groupBy, avg, ratio } = require('./utils/queries');
 const { formatDate } = require('./utils/dates');
 
 const app = express();
@@ -55,7 +55,7 @@ app.get('/api/pageviews', async (req, res) => {
   }
 });
 
-app.get('/api/userssessions', async (req, res) => {
+app.get('/api/userssessionsratio', async (req, res) => {
   try {
     const files = Object.keys(store);
     const data = await getData(store[files[0]]);
@@ -70,7 +70,9 @@ app.get('/api/userssessions', async (req, res) => {
 
       return {
         Date: data[0].Date,
-        UsersSessionsRatio: users / sessions
+        Users: users,
+        Sessions: sessions,
+        UsersSessionsRatio: ratio(users, sessions)
       };
     });
 
