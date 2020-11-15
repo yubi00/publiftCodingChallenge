@@ -21,7 +21,7 @@ const upload = multer({
   }
 });
 
-Router.get('/', async (req, res) => {
+Router.get('/api', async (req, res) => {
   try {
     const files = Object.keys(store);
     const data = await getData(store[files[0]]);
