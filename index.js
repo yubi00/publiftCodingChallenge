@@ -1,8 +1,10 @@
 const express = require('express');
 const multer = require('multer');
 const { v4: uuid } = require('uuid');
+const moment = require('moment');
 const getData = require('./utils/getData');
 const { groupBy, avg } = require('./utils/queries');
+const { formatDate } = require('./utils/dates');
 
 const app = express();
 const port = 5000;
@@ -65,7 +67,7 @@ app.get('/api/userssessions', async (req, res) => {
         (sum, curr) => sum + parseInt(curr.Sessions),
         0
       );
-      console.log(users, sessions);
+
       return {
         Date: data[0].Date,
         UsersSessionsRatio: users / sessions
@@ -73,7 +75,52 @@ app.get('/api/userssessions', async (req, res) => {
     });
 
     const json = JSON.stringify(usersSessionsRatio, null, 2);
+    res.status(200).send(`<pre>${json}</pre>`);
+  } catch (err) {
+    res.status(404).send({ status: false, error: err.message });
+  }
+});
 
+app.get('/api/weeklymaxsessions', async (req, res) => {
+  try {
+    const files = Object.keys(store);
+    const data = await getData(store[files[0]]);
+    const dataByTrafficType = groupBy(data, 'Traffic Type');
+
+    const result = dataByTrafficType.map((data) => {
+      return data.map((subdata) => {
+        return {
+          Date: subdata.Date,
+          TrafficType: subdata['Traffic Type'],
+          Sessions: subdata.Sessions,
+          WeekNumber: moment(formatDate(subdata.Date)).isoWeekday(0).isoWeek() //Sunday as the first day of the week by setting 0
+        };
+      });
+    });
+
+    const groupedbyWeekNo = result.map((data) => {
+      const groupedData = groupBy(data, 'WeekNumber');
+      return groupedData;
+    });
+
+    const weeklyMaxSessions = groupedbyWeekNo.map((data) => {
+      return {
+        TrafficType: data[0][0].TrafficType,
+        MaxSessionsWeekly: data.map((subdata) => {
+          return {
+            WeekNumber: subdata[0].WeekNumber,
+            maxSessions: Math.max.apply(
+              Math,
+              subdata.map(function (o) {
+                return o.Sessions;
+              })
+            )
+          };
+        })
+      };
+    });
+
+    const json = JSON.stringify(weeklyMaxSessions, null, 2);
     res.status(200).send(`<pre>${json}</pre>`);
   } catch (err) {
     res.status(404).send({ status: false, error: err.message });
