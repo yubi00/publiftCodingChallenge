@@ -1,9 +1,4 @@
-const express = require('express');
-const Router = require('./routes/Router');
-
-const app = express();
-app.use(Router);
-
+const app = require('./app');
 const port = 5000;
 
 app.listen(port, () => {
