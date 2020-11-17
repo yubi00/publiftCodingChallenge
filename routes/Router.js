@@ -6,7 +6,6 @@ const moment = require('moment');
 const getData = require('../utils/getData');
 const { groupBy, avg, ratio } = require('../utils/queries');
 const { formatDate } = require('../utils/dates');
-
 const store = {};
 
 const upload = multer({
@@ -128,7 +127,7 @@ Router.get('/api/weeklymaxsessions', async (req, res) => {
   }
 });
 
-Router.post('/api/uploads', upload.single('csvfile'), (req, res) => {
+Router.post('/api/uploads', upload.single('file'), (req, res) => {
   try {
     const id = uuid();
     if (!store[id]) {
@@ -175,4 +174,7 @@ Router.get('*', (req, res) => {
   });
 });
 
-module.exports = Router;
+module.exports = {
+  store,
+  Router
+};
