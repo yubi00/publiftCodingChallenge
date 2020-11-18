@@ -1,8 +1,9 @@
 const request = require('supertest');
 const app = require('../app');
 const { store } = require('../routes/Router');
+const getData = require('../utils/getData');
 
-test('Should upload a csv file', async () => {
+test('Should upload a csv file', async (done) => {
   const response = await request(app)
     .post('/api/uploads')
     .attach('file', 'tests/fixtures/analytics.csv')
@@ -20,27 +21,47 @@ test('Should upload a csv file', async () => {
   //assert that the buffer of the file is stored
   const uploadedFile = store[Object.keys(store)[0]];
   expect(uploadedFile instanceof Buffer).toBe(true);
+  done();
 });
 
-test('should retrive csv file by passing unique identifier as a query parameter', async () => {
+test('should process csv file by passing unique identifier as a query parameter', async (done) => {
   const id = Object.keys(store)[0];
+  const csvData = await getData(store[id]);
+  expect(csvData).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        Date: '20201012'
+      })
+    ])
+  );
+
   const response = await request(app).get(`/api/${id}`).expect(200);
-
-  expect(response.body).toHaveProperty('id');
-  expect(response.body).toHaveProperty('file');
-  expect(response.body).toHaveProperty('status');
+  done();
 });
 
-test('should get average page view per day for different traffic type', async () => {
+test('should get average page view per day for different traffic type', async (done) => {
   const response = await request(app).get('/api/pageviews').expect(200);
+  done();
 });
 
-test('should get ratio of users and sessions per day', async () => {
+test('should get ratio of users and sessions per day', async (done) => {
   const response = await request(app)
     .get('/api/userssessionsratio')
     .expect(200);
+  done();
 });
 
-test('should get weeekly maximum sessions per traffic type', async () => {
+test('should get weeekly maximum sessions per traffic type', async (done) => {
   const response = await request(app).get('/api/weeklymaxsessions').expect(200);
+  done();
+});
+
+test('should display appropriate error message for bad api request', async () => {
+  const response = await request(app).get('/helloworld').expect(404);
+  const errorMsg = {
+    status: false,
+    error: 'Error 404 Page not found'
+  };
+
+  expect(response.body).toMatchObject(errorMsg);
 });

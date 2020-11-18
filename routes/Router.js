@@ -20,22 +20,11 @@ const upload = multer({
   }
 });
 
-Router.get('/api', async (req, res) => {
-  try {
-    const files = Object.keys(store);
-    const data = await getData(store[files[0]]);
-    const json = JSON.stringify(data, null, 2);
-
-    res.status(200).send(`<pre>${json}</pre>`);
-  } catch (err) {
-    res.status(404).send({ status: false, error: err.message });
-  }
-});
-
 Router.get('/api/pageviews', async (req, res) => {
   try {
     const files = Object.keys(store);
     const data = await getData(store[files[0]]);
+
     const dataByDate = groupBy(data, 'Date');
 
     const avgPageViewByDate = dataByDate.map((data) => {
@@ -148,7 +137,7 @@ Router.post('/api/uploads', upload.single('file'), (req, res) => {
   }
 });
 
-Router.get('/api/:id', (req, res) => {
+Router.get('/api/:id', async (req, res) => {
   const id = req.params.id;
   const files = Object.keys(store);
   try {
@@ -157,11 +146,10 @@ Router.get('/api/:id', (req, res) => {
     const fileExist = files.some((file) => file === id);
     if (!fileExist) throw new Error('file doesnot exist');
 
-    res.status(200).send({
-      status: true,
-      id,
-      file: store[id]
-    });
+    const data = await getData(store[id]);
+    const json = JSON.stringify(data, null, 2);
+
+    res.status(200).send(`<pre>${json}</pre>`);
   } catch (err) {
     res.status(404).send({ status: false, error: err.message });
   }
