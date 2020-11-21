@@ -34,9 +34,11 @@ Router.get('/api/pageviews', async (req, res) => {
         AveragePageViews: avg(sum, data.length)
       };
     });
-    const json = JSON.stringify(avgPageViewByDate, null, 2);
 
-    res.status(200).send(`<pre>${json}</pre>`);
+    res.status(200).send({
+      status: true,
+      data: avgPageViewByDate
+    });
   } catch (err) {
     res.status(404).send({ status: false, error: err.message });
   }
@@ -63,8 +65,10 @@ Router.get('/api/userssessionsratio', async (req, res) => {
       };
     });
 
-    const json = JSON.stringify(usersSessionsRatio, null, 2);
-    res.status(200).send(`<pre>${json}</pre>`);
+    res.status(200).send({
+      status: true,
+      data: usersSessionsRatio
+    });
   } catch (err) {
     res.status(404).send({ status: false, error: err.message });
   }
@@ -109,8 +113,10 @@ Router.get('/api/weeklymaxsessions', async (req, res) => {
       };
     });
 
-    const json = JSON.stringify(weeklyMaxSessions, null, 2);
-    res.status(200).send(`<pre>${json}</pre>`);
+    res.status(200).send({
+      status: true,
+      data: weeklyMaxSessions
+    });
   } catch (err) {
     res.status(404).send({ status: false, error: err.message });
   }
@@ -147,9 +153,11 @@ Router.get('/api/:id', async (req, res) => {
     if (!fileExist) throw new Error('file doesnot exist');
 
     const data = await getData(store[id]);
-    const json = JSON.stringify(data, null, 2);
 
-    res.status(200).send(`<pre>${json}</pre>`);
+    res.status(200).send({
+      status: true,
+      data
+    });
   } catch (err) {
     res.status(404).send({ status: false, error: err.message });
   }

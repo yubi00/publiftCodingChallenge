@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../app');
 const { store } = require('../routes/Router');
-const getData = require('../utils/getData');
+const data = require('./fixtures/data');
 
 test('Should upload a csv file', async (done) => {
   const response = await request(app)
@@ -26,14 +26,9 @@ test('Should upload a csv file', async (done) => {
 
 test('should process csv file by passing unique identifier as a query parameter', async (done) => {
   const id = Object.keys(store)[0];
-  const csvData = await getData(store[id]);
-  expect(csvData).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        Date: '20201012'
-      })
-    ])
-  );
+  const getData = jest.fn(() => data);
+  getData(store[id]);
+  await expect(getData).toHaveBeenCalledWith(store[id]);
 
   const response = await request(app).get(`/api/${id}`).expect(200);
   done();
