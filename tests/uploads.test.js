@@ -24,18 +24,39 @@ test('Should upload a csv file', async (done) => {
   done();
 });
 
+beforeEach(async () => {
+  const getData = jest.fn(() => Promise.resolve(data));
+  await expect(getData(Object.keys(store)[0])).resolves.toBe(data);
+});
+
 test('should process csv file by passing unique identifier as a query parameter', async (done) => {
   const id = Object.keys(store)[0];
-  const getData = jest.fn(() => data);
-  getData(store[id]);
-  await expect(getData).toHaveBeenCalledWith(store[id]);
-
   const response = await request(app).get(`/api/${id}`).expect(200);
+  expect(response.body.status).toBe(true);
+  expect(response.body.data).not.toBe(null);
+  expect(response.body.data[0]).toMatchObject({
+    Date: '20201028',
+    'Traffic Type': 'organic',
+    Users: '340',
+    Sessions: '372',
+    'Pages / Session': '1.40',
+    Avg: {
+      ' Session Duration': '00:01:10'
+    },
+    Pageviews: '522'
+  });
   done();
 });
 
 test('should get average page view per day for different traffic type', async (done) => {
   const response = await request(app).get('/api/pageviews').expect(200);
+  expect(response.body.status).toBe(true);
+  expect(response.body.data).not.toBe(null);
+  expect(response.body.data[0]).toMatchObject({
+    Date: '20201001',
+    AveragePageViews: 122
+  });
+
   done();
 });
 
@@ -43,11 +64,24 @@ test('should get ratio of users and sessions per day', async (done) => {
   const response = await request(app)
     .get('/api/userssessionsratio')
     .expect(200);
+
+  expect(response.body.status).toBe(true);
+  expect(response.body.data).not.toBe(null);
+  expect(response.body.data[0]).toMatchObject({
+    Date: '20201001',
+    Users: 321,
+    Sessions: 348,
+    UsersSessionsRatio: '107:116'
+  });
   done();
 });
 
 test('should get weeekly maximum sessions per traffic type', async (done) => {
   const response = await request(app).get('/api/weeklymaxsessions').expect(200);
+  expect(response.body.status).toBe(true);
+  expect(response.body.data).not.toBe(null);
+  expect(response.body.data[0]).toHaveProperty('TrafficType');
+  expect(response.body.data[0]).toHaveProperty('MaxSessionsWeekly');
   done();
 });
 
